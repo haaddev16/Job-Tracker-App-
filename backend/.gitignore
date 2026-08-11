@@ -1,0 +1,6 @@
+job_tracker.db
+__pycache__/
+*.pyc
+.venv/
+venv/
+.env
