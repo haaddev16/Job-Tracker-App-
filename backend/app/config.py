@@ -10,7 +10,12 @@ class Settings(BaseSettings):
     cors_origins: list[str] = [
         "http://localhost:5173",
         "http://127.0.0.1:5173",
+        "http://localhost:4173",
+        "http://127.0.0.1:4173",
+        "https://job-tracker-app-mu-five.vercel.app",
     ]
+    # Allows other https deploy previews if needed
+    cors_origin_regex: str = r"https://.*\.vercel\.app"
 
 
 settings = Settings()
