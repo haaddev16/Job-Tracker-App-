@@ -1,5 +1,37 @@
 const TOKEN_KEY = 'job-tracker-token'
 
+const LOCAL_API = 'http://127.0.0.1:8000'
+const PRODUCTION_API = 'https://job-tracker-app-production-9485.up.railway.app'
+
+/**
+ * API base URL resolution (no trailing slash):
+ * 1. VITE_API_URL (Vercel / preferred)
+ * 2. VITE_API_BASE_URL (legacy env name)
+ * 3. Local default only in Vite dev mode
+ * 4. Production Railway URL as final deploy safety net
+ */
+function resolveApiBase(): string {
+  const fromEnv =
+    import.meta.env.VITE_API_URL ||
+    import.meta.env.VITE_API_BASE_URL ||
+    ''
+
+  const trimmed = String(fromEnv).trim().replace(/\/$/, '')
+  if (trimmed) return trimmed
+
+  if (import.meta.env.DEV) return LOCAL_API
+  return PRODUCTION_API
+}
+
+export const API_BASE = resolveApiBase()
+
+/** Build absolute API URL — never a same-origin relative path in production. */
+export function apiUrl(path: string): string {
+  if (path.startsWith('http://') || path.startsWith('https://')) return path
+  const normalized = path.startsWith('/') ? path : `/${path}`
+  return `${API_BASE}${normalized}`
+}
+
 export function getToken(): string | null {
   return localStorage.getItem(TOKEN_KEY)
 }
@@ -28,7 +60,8 @@ export async function api<T>(
   const token = getToken()
   if (token) headers.set('Authorization', `Bearer ${token}`)
 
-  const res = await fetch(path, { ...options, headers })
+  const url = apiUrl(path)
+  const res = await fetch(url, { ...options, headers })
   const text = await res.text()
   const data = text ? JSON.parse(text) : null
 
